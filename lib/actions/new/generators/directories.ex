@@ -12,7 +12,9 @@ require Logger
       "lib/#{app_name}/core/model",
       "lib/#{app_name}/core/model/entities",
       "lib/#{app_name}/core/model/value_objects",
-      "lib/#{app_name}/core/use_cases"
+      "lib/#{app_name}/core/use_cases",
+      "lib/#{app_name}/infrastructure",
+      "lib/#{app_name}/interfaces"
     ] |> Enum.map(&Path.join([root_path, &1]))
 
     Enum.reduce_while(directories, :ok, &directory_reductor/2)
