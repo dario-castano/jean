@@ -1,13 +1,15 @@
 defmodule Actions.New.Handlers.Executor do
   require Logger
   alias Actions.New.Generators.Directories
+  alias Actions.New.Generators.Files
 
   @spec execute([String.t()]) :: {:ok, String.t()} | {:rolled, String.t()}
   def execute([app_name | _]) when is_bitstring(app_name) do
     with {:ok, cwd} <- File.cwd(),
           :ok <- create_mix_project(app_name),
-          :ok <- remove_app_file(app_name, cwd),
-          :ok <- create_cleanarch_structure(app_name, cwd) do
+          :ok <- Files.remove_app_file(app_name, cwd),
+          :ok <- create_cleanarch_structure(app_name, cwd),
+          :ok <- Files.create_config_files(app_name, cwd) do
       {:ok, app_name}
     else
       {:error, reason} -> rollback(app_name, reason)
@@ -27,19 +29,7 @@ defmodule Actions.New.Handlers.Executor do
     end
   end
 
-  @spec remove_app_file(String.t(), String.t()) :: :ok | {:error, String.t()}
-  defp remove_app_file(app_name, root_dir) do
-    app_file_path = Path.join([root_dir, app_name, "lib", "#{app_name}.ex"])
-    file_deletion = File.rm(app_file_path)
-
-    case file_deletion do
-      :ok -> :ok
-      {:error, reason} ->
-        Logger.error("Failed to delete #{app_file_path}: #{reason}")
-        {:error, "Failed to delete #{app_file_path}: #{reason}"}
-    end
-  end
-
+  @spec create_cleanarch_structure(String.t(), String.t()) :: :ok | {:error, String.t()}
   defp create_cleanarch_structure(app_name, root_dir) do
     root_path = Path.join(root_dir, app_name)
     with :ok <- Directories.create_basic_directories(root_path, app_name) do
